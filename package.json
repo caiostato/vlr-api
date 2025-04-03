@@ -6,9 +6,13 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "studio": "npx prisma studio -Y"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.0",
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.8.4",
     "cheerio": "^1.0.0",
     "next": "15.2.4",
     "react": "^19.0.0",
