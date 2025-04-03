@@ -3,9 +3,12 @@ import { load } from "cheerio";
 
 import Player from "@/types/player";
 
-export async function GET(req: Request, context: { params: { id: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

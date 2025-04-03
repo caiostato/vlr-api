@@ -73,6 +73,7 @@ const createMatch = ({
     matchObj.status = "Completed";
   }
   matchObj.teams = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapScore: any[] = [];
 
   mapScore.push(

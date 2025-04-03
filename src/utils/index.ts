@@ -3,6 +3,7 @@ const idGenerator = function (id: string) {
   try {
     if (!id.match(/^[0-9]+$/)) return "0";
     return id.padStart(15, "0");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (err) {
     console.log(id);
     return "n/a";
