@@ -9,29 +9,36 @@ datasource db {
 
 
 model Player {
-  id    Int    @id @default(autoincrement())
+  externalId String @id 
+  playerId    Int @unique 
+
   name  String
-  nick  String
-  type  String
+  alias  String
+  imageUrl String
   role  String
-  team  Team?  @relation(fields: [teamId], references: [id])
+  type  String
 
-  teamId Int?
-}
+  team  Team?  @relation(fields: [teamId], references: [externalId])
+  teamId String?
 
-model Team {
-  id      Int      @id @default(autoincrement())
-  name    String
-  players Player[] // One-to-Many relationship with Player
-  match   Match?   @relation(fields: [matchId], references: [id])
-
-  matchId Int?
+  currentScore Int @default(0) 
+  previousScore Int @default(0) 
+  oldScore Int @default(0) 
 }
 
 model Match {
-  id       Int    @id @default(autoincrement())
-  match    Int    @unique
-  matchId  Int    @unique
-  status   String
-  teams    Team[] // One-to-Many relationship with Team
+  externalId String @id
+  matchId    Int    @unique
+  match      Int    @unique
+  status     String
+  teams      Team[] // many-to-many implicitly
+}
+
+model Team {
+  externalId String @id
+  teamId     Int    @unique
+  name       String
+  logo       String
+  players    Player[]
+  matches    Match[] // many-to-many implicitly
 }
