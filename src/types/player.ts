@@ -1,15 +1,21 @@
-import PlayerTeam from "./playerTeam";
-
 type Player = {
-  id: string;
+  playerId?: string;
   nickName: string;
   realName: string;
   link: string;
-  imgUrl: string;
+
   country: string;
-  team: PlayerTeam;
+
   role: string;
+  type: string;
+
   earnings: string;
+  imageUrl: string;
+
+  teamId?: string;
+  currentScore: number;
+  previousScore: number;
+  oldScore: number;
 };
 
 export default Player;

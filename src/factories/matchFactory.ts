@@ -189,6 +189,7 @@ const createMatch = ({
 
   playerObj.extendedStats = extendedStats;
   playerObj.stats = stats;
+
   return {
     match: matchObj,
     player: playerObj,

@@ -1,31 +1,15 @@
+import { baseUrl } from "@/constants";
+import getPlayer from "@/scrapers/player/getPlayer";
+import Player from "@/types/player";
+import Team from "@/types/team";
 import { PrismaClient } from "@prisma/client";
 import axios from "axios";
 import { load } from "cheerio";
 import { NextResponse } from "next/server";
 
-const baseUrl = "https://www.vlr.gg";
 const prisma = new PrismaClient();
 const teamCache = new Map<number, Team>();
 const playersCache = new Map<number, Player>();
-
-interface Player {
-  name: string;
-  alias: string;
-  imageUrl: string;
-
-  id: number;
-  playerId?: number;
-  type: string;
-  role: string;
-  teamId?: string;
-}
-
-interface Team {
-  name: string;
-  id: number;
-  players: Player[];
-  logo: string;
-}
 
 interface Match {
   match: number;
@@ -62,48 +46,20 @@ async function getPlayersFromTeam(
     const players: Player[] = [];
     const logo = `https:${$(".team-header img").attr("src")}`;
 
-    $('a[href^="/player/"]').each((_, el) => {
+    const playerElements = $('a[href^="/player/"]');
+
+    for (let i = 0; i < playerElements.length; i++) {
+      const el = playerElements[i];
       const href = $(el).attr("href");
       const idMatch = href?.match(/\/player\/(\d+)\//);
 
-      const item = $(el).find(".team-roster-item-name");
-
-      const name = !!item.find(".team-roster-item-name-real")
-        ? cleanName(item.find(".team-roster-item-name-real").text())
-        : "";
-      const alias = !!item.find(".team-roster-item-name-alias")
-        ? cleanName(item.find(".team-roster-item-name-alias").text())
-        : "";
-      const imageUrl = $(el).find("img").attr("src") || "";
-
-      const tagDiv = item.find(".wf-tag");
-
-      let category = "";
-      if (!!tagDiv) {
-        const role = cleanName(tagDiv.text());
-        if (!role.toLocaleLowerCase().includes("sub")) {
-          category = role;
-        }
-      }
-
-      const type = category === "" ? "player" : "staff";
-
       if (idMatch) {
         const id = parseInt(idMatch[1], 10);
-        const playerObj = {
-          name,
-          alias,
-          imageUrl,
-          id,
-          type,
-          role: category,
-          teamId: teamId.toString(),
-        };
-
-        playersCache.set(id, playerObj);
-        players.push(playerObj);
+        const player = await getPlayer({ playerId: id.toString() });
+        playersCache.set(id, player);
+        players.push(player);
       }
-    });
+    }
 
     return { players, logo };
   } catch (error) {
@@ -243,16 +199,16 @@ async function saveMatchesToDB(matches: Match[]) {
     const externalTeamId = teamIdToExternalId.get(Number(player.teamId));
     if (!externalTeamId) {
       console.warn(
-        `⚠️ Skipping player ${player.alias} — no team match for teamId ${player.teamId}`
+        `⚠️ Skipping player ${player.nickName} — no team match for teamId ${player.teamId}`
       );
       continue;
     }
 
     await prisma.player.upsert({
-      where: { playerId: player.id },
+      where: { playerId: Number(player.playerId) },
       update: {
-        alias: player.alias,
-        name: player.name,
+        alias: player.nickName,
+        name: player.realName,
         imageUrl: player.imageUrl,
         role: player.role,
         type: player.type,
@@ -260,16 +216,13 @@ async function saveMatchesToDB(matches: Match[]) {
       },
       create: {
         externalId: crypto.randomUUID(),
-        alias: player.alias,
-        name: player.name,
+        alias: player.nickName,
+        name: player.realName,
         imageUrl: player.imageUrl,
-        playerId: player.id,
+        playerId: Number(player.playerId),
         role: player.role,
         type: player.type,
         teamId: externalTeamId, // ✅ now correct
-        currentScore: 0,
-        oldScore: 0,
-        previousScore: 0,
       },
     });
   }

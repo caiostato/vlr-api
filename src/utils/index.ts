@@ -10,4 +10,26 @@ const idGenerator = function (id: string) {
   }
 };
 
-export { idGenerator };
+const cleanCountry = (country: string) => {
+  try {
+    country = country.split("\n")[2].replace(/[\n,\t]/g, "");
+  } catch {
+    country = "";
+  }
+  return country;
+};
+const cleanPhoto = (photo: string) => {
+  if (photo === undefined) return "";
+  if (photo.includes("owcdn.net")) photo = `https:${photo}`;
+  else photo = "";
+  return photo.replace(/[\n,\t]/g, "");
+};
+
+function cleanName(raw: string): string {
+  return raw
+    .replace(/\[[0-9]+\]/g, "") // Remove [ID]
+    .replace(/\s+/g, " ") // Collapse whitespace
+    .trim();
+}
+
+export { idGenerator, cleanCountry, cleanPhoto, cleanName };

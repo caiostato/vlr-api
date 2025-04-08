@@ -7,38 +7,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Player {
-  externalId String @id 
-  playerId    Int @unique 
-
-  name  String
-  alias  String
-  imageUrl String
-  role  String
-  type  String
-
-  team  Team?  @relation(fields: [teamId], references: [externalId])
-  teamId String?
-
-  currentScore Int @default(0) 
-  previousScore Int @default(0) 
-  oldScore Int @default(0) 
+  name          String
+  type          String
+  role          String
+  alias         String
+  acs           Float   @default(0)
+  adr           Float   @default(0)
+  assistsPr     Float   @default(0)
+  currentScore  Int     @default(0)
+  deaths        Int     @default(0)
+  externalId    String  @id
+  fdpr          Float   @default(0)
+  fkpr          Float   @default(0)
+  imageUrl      String
+  kast          Float   @default(0)
+  kd            Float   @default(0)
+  kills         Int     @default(0)
+  oldScore      Int     @default(0)
+  playerId      Int     @unique
+  previousScore Int     @default(0)
+  rating        Float   @default(0)
+  teamId        String?
+  team          Team?   @relation(fields: [teamId], references: [externalId])
 }
 
 model Match {
-  externalId String @id
-  matchId    Int    @unique
   match      Int    @unique
   status     String
-  teams      Team[] // many-to-many implicitly
+  externalId String @id
+  matchId    Int    @unique
+  teams      Team[] @relation("MatchToTeam")
 }
 
 model Team {
-  externalId String @id
-  teamId     Int    @unique
   name       String
   logo       String
+  externalId String   @id
+  teamId     Int      @unique
   players    Player[]
-  matches    Match[] // many-to-many implicitly
+  matches    Match[]  @relation("MatchToTeam")
 }
