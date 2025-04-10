@@ -1,50 +1,175 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
+  url= "postgresql://postgres:root@localhost:25432/vlr_db?sslmode=disable"
+}
+
+enum MatchStatus {
+  Ongoing
+  Upcoming
+  Completed
 }
 
 model Player {
-  name          String
-  type          String
-  role          String
-  alias         String
-  acs           Float   @default(0)
-  adr           Float   @default(0)
-  assistsPr     Float   @default(0)
-  currentScore  Int     @default(0)
-  deaths        Int     @default(0)
-  externalId    String  @id
-  fdpr          Float   @default(0)
-  fkpr          Float   @default(0)
-  imageUrl      String
-  kast          Float   @default(0)
-  kd            Float   @default(0)
-  kills         Int     @default(0)
-  oldScore      Int     @default(0)
-  playerId      Int     @unique
-  previousScore Int     @default(0)
-  rating        Float   @default(0)
-  teamId        String?
-  team          Team?   @relation(fields: [teamId], references: [externalId])
-}
-
-model Match {
-  match      Int    @unique
-  status     String
   externalId String @id
-  matchId    Int    @unique
-  teams      Team[] @relation("MatchToTeam")
+  playerId   Int    @unique
+
+  name     String
+  type     String
+  alias    String
+  imageUrl String
+
+  currentScore  Int @default(0)
+  previousScore Int @default(0)
+  oldScore      Int @default(0)
+
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [externalId])
+
+  acs       Float @default(0)
+  adr       Float @default(0)
+  assistsPr Float @default(0)
+  deaths    Int   @default(0)
+  fdpr      Float @default(0)
+  fkpr      Float @default(0)
+  kast      Float @default(0)
+  kd        Float @default(0)
+  kills     Int   @default(0)
+  rating    Float @default(0)
 }
 
 model Team {
+  externalId String   @id
   name       String
   logo       String
-  externalId String   @id
-  teamId     Int      @unique
+  teamId     String   @unique
   players    Player[]
-  matches    Match[]  @relation("MatchToTeam")
+
+  matches Match[] @relation("MatchTeams")
+}
+
+
+// MATCH PRINCIPAL
+model Match {
+  externalId String      @id
+  vlrId      String
+  matchOrder Int
+  dateTime   DateTime
+  logoUrl    String
+  status     MatchStatus
+  eventId    String
+  eventName  String
+  eventLogo  String
+  eventStage String
+
+  teams Team[]      @relation("MatchTeams")
+  games GameMatch[] @relation("MatchGames")
+}
+
+// JOGO DENTRO DE UM MATCH
+model GameMatch {
+  externalId String @id
+  totalTime  String
+  teamPicker String
+  mapName    String
+  gameOrder  Int
+  teamWinner String
+
+  matchId String
+  match   Match  @relation("MatchGames", fields: [matchId], references: [externalId])
+
+  teams TeamGame[] @relation("GameMatchTeams")
+}
+
+// TIME DENTRO DE UM GAME
+model TeamGame {
+  externalId  String @id
+  vlrTeamId      String
+  totalRounds Int
+  ctRounds    Int
+  trRounds    Int
+
+  gameMatchId String
+  gameMatch   GameMatch @relation("GameMatchTeams", fields: [gameMatchId], references: [externalId])
+
+  playersGame PlayerGame[] @relation("TeamGamePlayers")
+}
+
+// JOGADOR DENTRO DE UM TIME/GAME
+model PlayerGame {
+  externalId String @id
+  vlrId      String
+  linkUrl    String
+
+  stats         PlayerStats?
+  statsAdvanced PlayerStatsAdvanced?
+
+  teamGameId String
+  teamGame   TeamGame @relation("TeamGamePlayers", fields: [teamGameId], references: [externalId])
+}
+
+model PlayerStats {
+  id       String     @id
+  player   PlayerGame @relation(fields: [playerId], references: [externalId])
+  playerId String     @unique
+
+  kdr  String
+  acs  String
+  k    String
+  d    String
+  a    String
+  kdb  String
+  kast String
+  adr  String
+  hs   String
+  fk   String
+  fd   String
+  fkdb String
+}
+
+model PlayerStatsAdvanced {
+  id       String     @id
+  player   PlayerGame @relation(fields: [playerId], references: [externalId])
+  playerId String     @unique
+
+  kdr_ct String
+  kdr_t  String
+
+  acs_ct String
+  acs_t  String
+
+  k_ct String
+  k_t  String
+
+  d_ct String
+  d_t  String
+
+  a_ct String
+  a_t  String
+
+  kdb_ct String
+  kdb_t  String
+
+  kast_ct String
+  kast_t  String
+
+  adr_ct String
+  adr_t  String
+
+  hs_ct String
+  hs_t  String
+
+  fk_ct String
+  fk_t  String
+
+  fd_ct String
+  fd_t  String
+
+  fkdb_ct String
+  fkdb_t  String
 }

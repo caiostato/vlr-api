@@ -1,6 +1,6 @@
 type GameTeam = {
   name: string;
-  id: string;
+  logo: string;
   score: string;
 };
 
