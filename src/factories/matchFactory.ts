@@ -26,6 +26,7 @@ type Response = {
 const createMatch = async ({
   matchUrl,
 }: createMatchProps): Promise<Response> => {
+  //match loop
   const { data } = await axios.get(`${baseUrl}${matchUrl}`);
   const $ = load(data);
 
@@ -74,15 +75,18 @@ const createMatch = async ({
       : "Upcoming";
 
   const teams: string[] = [];
+  //team loop
   $(".match-header-link").each((i, el) => {
     const href = $(el).attr("href") || "";
     const rawName = $(el).text();
     const logo = $(el).find("img").attr("src") || "";
     const idMatch = href.match(/\/team\/(\d+)\//);
     const teamId = idMatch ? idMatch[1] : "";
+
     if (teamId) {
       teams.push(teamId);
     }
+
     teamsCache.set(Number(teamId), {
       externalId: crypto.randomUUID(),
       logo: logo,
@@ -90,6 +94,7 @@ const createMatch = async ({
       teamId: teamId,
     });
   });
+
   matchObj.teams = teams;
 
   const StatsContainer = $(
@@ -97,6 +102,7 @@ const createMatch = async ({
   );
   const games: GameMatch[] = [];
 
+  //game loop
   for (let i = 0; i < StatsContainer.length; i++) {
     const element = StatsContainer[i];
     const $element = $(element);
@@ -108,10 +114,10 @@ const createMatch = async ({
 
     const PlayerContainers = $element.find(".wf-table-inset.mod-overview tr");
 
+    //player stats loop
     for (let j = 0; j < PlayerContainers.length; j++) {
       const el = PlayerContainers[j];
       const href = $(el).find(".mod-player a").attr("href") || "";
-      // /player/2462/keznit'
       const playerId = href.split("/")[2];
       if (!playerId) continue;
       const playerScraped = await getPlayer({
@@ -119,94 +125,99 @@ const createMatch = async ({
       });
       const statsElements = $(el).find(".mod-stat");
 
-      const stats = new Object() as PlayerStats;
-      const statsAdvanced = new Object() as PlayerStatsAdvanced;
-
-      statsElements.each((index, statEl) => {
-        const get = (cls: string) => $(statEl).find(`.${cls}`).text().trim();
-        const data = {
-          t: get("mod-t"),
-          ct: get("mod-ct"),
-          both: get("mod-both"),
-        };
-
-        switch (index) {
-          case 0:
-            stats.kdr = data.both;
-            statsAdvanced.kdr_t = data.t;
-            statsAdvanced.kdr_ct = data.ct;
-            break;
-          case 1:
-            stats.acs = data.both;
-            statsAdvanced.acs_t = data.t;
-            statsAdvanced.acs_ct = data.ct;
-            break;
-          case 2:
-            stats.k = data.both;
-            statsAdvanced.k_t = data.t;
-            statsAdvanced.k_ct = data.ct;
-            break;
-          case 3:
-            stats.d = data.both;
-            statsAdvanced.d_t = data.t;
-            statsAdvanced.d_ct = data.ct;
-            break;
-          case 4:
-            stats.a = data.both;
-            statsAdvanced.a_t = data.t;
-            statsAdvanced.a_ct = data.ct;
-            break;
-          case 5:
-            stats.kdb = data.both;
-            statsAdvanced.kdb_t = data.t;
-            statsAdvanced.kdb_ct = data.ct;
-            break;
-          case 6:
-            stats.kast = data.both;
-            statsAdvanced.kast_t = data.t;
-            statsAdvanced.kast_ct = data.ct;
-            break;
-          case 7:
-            stats.adr = data.both;
-            statsAdvanced.adr_t = data.t;
-            statsAdvanced.adr_ct = data.ct;
-            break;
-          case 8:
-            stats.hs = data.both;
-            statsAdvanced.hs_t = data.t;
-            statsAdvanced.hs_ct = data.ct;
-            break;
-          case 9:
-            stats.fk = data.both;
-            statsAdvanced.fk_t = data.t;
-            statsAdvanced.fk_ct = data.ct;
-            break;
-          case 10:
-            stats.fd = data.both;
-            statsAdvanced.fd_t = data.t;
-            statsAdvanced.fd_ct = data.ct;
-            break;
-          case 11:
-            stats.fkdb = data.both;
-            statsAdvanced.fkdb_t = data.t;
-            statsAdvanced.fkdb_ct = data.ct;
-            break;
-        }
-      });
-      stats.id = crypto.randomUUID();
-      statsAdvanced.id = crypto.randomUUID();
       const playerObj = new Object() as PlayerGame;
+
+      if (playerScraped.type === "player") {
+        const stats = new Object() as PlayerStats;
+        const statsAdvanced = new Object() as PlayerStatsAdvanced;
+        statsElements.each((index, statEl) => {
+          const get = (cls: string) => $(statEl).find(`.${cls}`).text().trim();
+          const data = {
+            t: get("mod-t"),
+            ct: get("mod-ct"),
+            both: get("mod-both"),
+          };
+
+          switch (index) {
+            case 0:
+              stats.kdr = data.both;
+              statsAdvanced.kdr_t = data.t;
+              statsAdvanced.kdr_ct = data.ct;
+              break;
+            case 1:
+              stats.acs = data.both;
+              statsAdvanced.acs_t = data.t;
+
+              statsAdvanced.acs_ct = data.ct;
+              break;
+            case 2:
+              stats.k = data.both;
+              statsAdvanced.k_t = data.t;
+              statsAdvanced.k_ct = data.ct;
+              break;
+            case 3:
+              stats.d = data.both;
+              statsAdvanced.d_t = data.t;
+              statsAdvanced.d_ct = data.ct;
+              break;
+            case 4:
+              stats.a = data.both;
+              statsAdvanced.a_t = data.t;
+              statsAdvanced.a_ct = data.ct;
+              break;
+            case 5:
+              stats.kdb = data.both;
+              statsAdvanced.kdb_t = data.t;
+              statsAdvanced.kdb_ct = data.ct;
+              break;
+            case 6:
+              stats.kast = data.both;
+              statsAdvanced.kast_t = data.t;
+              statsAdvanced.kast_ct = data.ct;
+              break;
+            case 7:
+              stats.adr = data.both;
+              statsAdvanced.adr_t = data.t;
+              statsAdvanced.adr_ct = data.ct;
+              break;
+            case 8:
+              stats.hs = data.both;
+              statsAdvanced.hs_t = data.t;
+              statsAdvanced.hs_ct = data.ct;
+              break;
+            case 9:
+              stats.fk = data.both;
+              statsAdvanced.fk_t = data.t;
+              statsAdvanced.fk_ct = data.ct;
+              break;
+            case 10:
+              stats.fd = data.both;
+              statsAdvanced.fd_t = data.t;
+              statsAdvanced.fd_ct = data.ct;
+              break;
+            case 11:
+              stats.fkdb = data.both;
+              statsAdvanced.fkdb_t = data.t;
+              statsAdvanced.fkdb_ct = data.ct;
+              break;
+          }
+        });
+        stats.id = crypto.randomUUID();
+        statsAdvanced.id = crypto.randomUUID();
+        playerObj.stats = stats;
+        playerObj.advancedStats = statsAdvanced;
+      }
+
       playerObj.vlrId = playerScraped.playerId || "";
       playerObj.externalId = crypto.randomUUID();
       playerObj.linkUrl = playerScraped.link;
       playerObj.teamGameId = "";
-      playerObj.stats = stats;
-      playerObj.advancedStats = statsAdvanced;
 
       const idFromHref = parseInt(
         href.match(/\/player\/(\d+)/)?.[1] || "0",
         10
       );
+
       playersCache.set(idFromHref, {
         externalId: crypto.randomUUID(),
         playerId: Number(playerScraped.playerId),
