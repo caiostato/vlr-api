@@ -40,7 +40,10 @@ const createMatch = async ({
     .text()
     .trim();
   const cleanedDateStr = date.replace(/(\d+)(st|nd|rd|th)/, "$1");
-  matchObj.dateTime = new Date(`${cleanedDateStr} ${time}`);
+  const currentYear = new Date().getFullYear();
+  const cleanDate = new Date(`${cleanedDateStr} ${time}`);
+  cleanDate.setFullYear(currentYear);
+  matchObj.dateTime = cleanDate;
   matchObj.eventId =
     $(".match-header-super a.match-header-event").attr("href")?.split("/")[2] ||
     "0";
