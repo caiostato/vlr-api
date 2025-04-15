@@ -1,9 +1,15 @@
-import ExtendedStats from "./advancedStats";
-import Stats from "./stats";
-
-type PlayerStats = {
-  stats: Stats;
-  extendedStats: ExtendedStats;
+export type PlayerStats = {
+  id: string;
+  rating: string;
+  acs: string;
+  k: string;
+  d: string;
+  a: string;
+  kdb: string;
+  kast: string;
+  adr: string;
+  hs: string;
+  fk: string;
+  fd: string;
+  fkdb: string;
 };
-
-export default PlayerStats;

@@ -1,21 +1,41 @@
-type Player = {
-  playerId?: string;
-  nickName: string;
-  realName: string;
-  link: string;
+import { UserTeam, PlayerGame } from "@prisma/client";
+import { Team } from "./team";
 
-  country: string;
+export type Player = {
+  externalId: string;
+  playerId: string;
 
-  role: string;
+  name: string;
   type: string;
-
-  earnings: string;
+  alias: string;
   imageUrl: string;
+  country: string;
+  earnings: string;
 
-  teamId?: string;
   currentScore: number;
   previousScore: number;
   oldScore: number;
-};
 
-export default Player;
+  teamId?: string | null;
+  team?: Team | null;
+
+  rating?: number;
+  kills?: number;
+  deaths?: number;
+  assists?: number;
+  acs?: number;
+  adr?: number;
+  fd?: number;
+  fk?: number;
+  hs?: number;
+  kast?: number;
+
+  price?: number;
+
+  userTeams?: UserTeam[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  PlayerGame?: PlayerGame[];
+};

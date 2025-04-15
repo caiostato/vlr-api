@@ -1,7 +1,7 @@
 import { load } from "cheerio";
 
 import { baseUrl } from "@/constants";
-import Player from "@/types/player";
+import { Player } from "@/types/player";
 
 import { cleanPhoto, cleanCountry, cleanName } from "@/utils";
 
@@ -19,9 +19,8 @@ const getPlayer = async ({ playerId }: getPlayerProps): Promise<Player> => {
   const player = new Object() as Player;
 
   player.playerId = playerId;
-  player.nickName = $("h1.wf-title").text().trim();
-  player.realName = $("h2.player-real-name").text().trim();
-  player.link = playerUrl;
+  player.alias = $("h1.wf-title").text().trim();
+  player.name = $("h2.player-real-name").text().trim();
   player.imageUrl = cleanPhoto($(".player-header img").attr("src") || "");
   player.country = cleanCountry(
     $(".player-header .ge-text-light").text().trim()
@@ -30,7 +29,6 @@ const getPlayer = async ({ playerId }: getPlayerProps): Promise<Player> => {
     $("div.player-summary-container-1 > div:nth-child(6) > a")
       .attr("href")
       ?.split("/")[2] || "";
-  player.role = $(".profile-role").text().trim();
   const teamDiv = $("div.player-summary-container-1 > div:nth-child(6) > a");
   let category = "";
   const tagDiv = teamDiv.find(".wf-tag");

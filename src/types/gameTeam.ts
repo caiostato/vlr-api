@@ -1,7 +1,14 @@
-type GameTeam = {
-  name: string;
-  logo: string;
-  score: string;
-};
+import { TeamGame } from "./teamGame";
 
-export default GameTeam;
+export type GameMatch = {
+  externalId: string;
+
+  totalTime: string;
+  teamPicker: string; //externalTeamId
+  mapName: string;
+  gameOrder: number;
+  teamWinner: string; //externalTeamId
+
+  matchId: string; //vlrMatchId
+  teams: TeamGame[];
+};

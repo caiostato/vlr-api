@@ -1,34 +1,20 @@
-import { PlayerGame, PlayerStats, PlayerStatsAdvanced } from "@prisma/client";
+import { GameMatch } from "./gameTeam";
 import MatchStatus from "./matchStatus";
-import StreamObject from "./streamObject";
+export type Match = {
+  externalId: string;
+  vlrId: string;
+  matchOrder: number;
 
-type Match = {
-  id: string;
-  link: string;
-  date: string;
-  time: string;
+  dateTime: Date;
+  logoUrl: string;
+  status: MatchStatus;
+
   eventId: string;
   eventName: string;
   eventLogo: string;
   eventStage: string;
-  logo: string;
-  streams: StreamObject[];
-  status: MatchStatus;
-  teams: { teamId: string; logo: string; name: string }[];
-  games: {
-    gameOrder: number;
-    totalTime: string;
-    mapName: string;
-    teams: {
-      teamId: string;
-      totalRounds: number;
-      ctRounds: number;
-      trRounds: number;
-      players: PlayerGame & { stats: PlayerStats } & {
-          statsAdvanced: PlayerStatsAdvanced;
-        }[];
-    }[];
-  }[];
-};
+  score: number[];
 
-export default Match;
+  teams: string[]; //externalTeamId
+  games: GameMatch[];
+};

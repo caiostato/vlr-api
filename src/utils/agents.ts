@@ -1,13 +1,91 @@
-const duelists = ["jett", "reyna", "raze", "phoenix", "yoru", "neon"];
-const initiators = ["sova", "skye", "breach", "fade", "kayo", "gekko"];
-const controllers = ["viper", "brimstone", "omen", "astra", "garbor"];
-const sentinels = ["killjoy", "cypher", "sage", "chamber", "deadlock"];
+export const agentToRole: Record<
+  string,
+  "duelist" | "initiator" | "sentinel" | "controller"
+> = {
+  jett: "duelist",
+  reyna: "duelist",
+  phoenix: "duelist",
+  raze: "duelist",
+  yoru: "duelist",
+  neon: "duelist",
 
-const agentToRole = Object.fromEntries([
-  ...duelists.map((agent) => [agent, "duelist"]),
-  ...initiators.map((agent) => [agent, "initiator"]),
-  ...controllers.map((agent) => [agent, "controller"]),
-  ...sentinels.map((agent) => [agent, "sentinel"]),
-]);
+  sova: "initiator",
+  skye: "initiator",
+  fade: "initiator",
+  kayo: "initiator",
+  breach: "initiator",
+  gekko: "initiator",
 
-export default agentToRole;
+  sage: "sentinel",
+  cypher: "sentinel",
+  killjoy: "sentinel",
+  chamber: "sentinel",
+  deadlock: "sentinel",
+
+  brimstone: "controller",
+  omen: "controller",
+  astra: "controller",
+  viper: "controller",
+  harbor: "controller",
+};
+
+export type roleEnum = "duelist" | "initiator" | "controller" | "sentinel";
+
+export const mod = {
+  duelist: {
+    kdr: 1.1,
+    acs: 1.4,
+    k: 1.2,
+    d: -0.2,
+    a: 0.5,
+    kdb: 1.2,
+    kast: 0.9,
+    adr: 1.3,
+    hs: 0.9,
+    fk: 1.6,
+    fd: -0.3,
+    fkdb: 1.3,
+  },
+  initiator: {
+    kdr: 1.0,
+    acs: 1.2,
+    k: 1.0,
+    d: -0.3,
+    a: 1.4,
+    kdb: 1.0,
+    kast: 1.3,
+    adr: 1.0,
+    hs: 0.6,
+    fk: 1.0,
+    fd: -0.4,
+    fkdb: 1.0,
+  },
+  controller: {
+    kdr: 1.1,
+    acs: 1.0,
+    k: 0.9,
+    d: -0.5,
+    a: 1.0,
+    kdb: 1.0,
+    kast: 1.3,
+    adr: 1.2,
+    hs: 0.6,
+    fk: 0.6,
+    fd: -0.6,
+    fkdb: 0.9,
+  },
+  sentinel: {
+    kdr: 1.2,
+    acs: 1.0,
+    k: 1.0,
+    d: -0.6,
+    a: 1.0,
+    kdb: 1.2,
+    kast: 1.4,
+    adr: 1.0,
+    hs: 0.7,
+    fk: 0.7,
+    fd: -0.5,
+    fkdb: 1.0,
+  },
+};

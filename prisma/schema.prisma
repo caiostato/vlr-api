@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   // url      = env("DATABASE_URL")
-  url= "postgresql://postgres:root@localhost:25432/vlr_db?sslmode=disable"
+  url      = "postgresql://postgres:root@localhost:25432/vlr_db?sslmode=disable"
 }
 
 enum MatchStatus {
@@ -17,30 +17,41 @@ enum MatchStatus {
 
 model Player {
   externalId String @id
-  playerId   Int    @unique
+  playerId   String    @unique
 
   name     String
   type     String
   alias    String
   imageUrl String
+  country String
+  earnings String
 
-  currentScore  Int @default(0)
-  previousScore Int @default(0)
-  oldScore      Int @default(0)
+  currentScore  Float @default(0)
+  previousScore Float @default(0)
+  oldScore      Float @default(0)
 
   teamId String?
   team   Team?   @relation(fields: [teamId], references: [externalId])
 
-  acs       Float @default(0)
-  adr       Float @default(0)
-  assistsPr Float @default(0)
-  deaths    Int   @default(0)
-  fdpr      Float @default(0)
-  fkpr      Float @default(0)
-  kast      Float @default(0)
-  kd        Float @default(0)
-  kills     Int   @default(0)
-  rating    Float @default(0)
+  rating  Float @default(0)
+  kills   Float @default(0)
+  deaths  Float @default(0)
+  assists Float @default(0)
+  acs     Float @default(0)
+  adr     Float @default(0)
+  fd      Float @default(0)
+  fk      Float @default(0)
+  hs      Float @default(0)
+  kast    Float @default(0)
+
+  price Float @default(0)
+
+  userTeams UserTeam[] @relation("UserTeamPlayers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  PlayerGame PlayerGame[]
 }
 
 model Team {
@@ -51,8 +62,10 @@ model Team {
   players    Player[]
 
   matches Match[] @relation("MatchTeams")
-}
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
 
 // MATCH PRINCIPAL
 model Match {
@@ -66,9 +79,13 @@ model Match {
   eventName  String
   eventLogo  String
   eventStage String
+  score Int[]
 
   teams Team[]      @relation("MatchTeams")
   games GameMatch[] @relation("MatchGames")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 // JOGO DENTRO DE UM MATCH
@@ -84,12 +101,15 @@ model GameMatch {
   match   Match  @relation("MatchGames", fields: [matchId], references: [externalId])
 
   teams TeamGame[] @relation("GameMatchTeams")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 // TIME DENTRO DE UM GAME
 model TeamGame {
   externalId  String @id
-  vlrTeamId      String
+  vlrTeamId   String
   totalRounds Int
   ctRounds    Int
   trRounds    Int
@@ -98,19 +118,30 @@ model TeamGame {
   gameMatch   GameMatch @relation("GameMatchTeams", fields: [gameMatchId], references: [externalId])
 
   playersGame PlayerGame[] @relation("TeamGamePlayers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 // JOGADOR DENTRO DE UM TIME/GAME
 model PlayerGame {
   externalId String @id
-  vlrId      String
-  linkUrl    String
+  alias String
+  imageUrl String
 
+
+  agent String
   stats         PlayerStats?
   statsAdvanced PlayerStatsAdvanced?
 
   teamGameId String
   teamGame   TeamGame @relation("TeamGamePlayers", fields: [teamGameId], references: [externalId])
+
+  playerId      String
+  player Player @relation(fields: [playerId], references: [externalId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model PlayerStats {
@@ -118,7 +149,7 @@ model PlayerStats {
   player   PlayerGame @relation(fields: [playerId], references: [externalId])
   playerId String     @unique
 
-  kdr  String
+  rating  String
   acs  String
   k    String
   d    String
@@ -130,6 +161,9 @@ model PlayerStats {
   fk   String
   fd   String
   fkdb String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model PlayerStatsAdvanced {
@@ -137,8 +171,8 @@ model PlayerStatsAdvanced {
   player   PlayerGame @relation(fields: [playerId], references: [externalId])
   playerId String     @unique
 
-  kdr_ct String
-  kdr_t  String
+  rating_ct String
+  rating_t  String
 
   acs_ct String
   acs_t  String
@@ -172,4 +206,38 @@ model PlayerStatsAdvanced {
 
   fkdb_ct String
   fkdb_t  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model User {
+  externalId String   @id
+  name       String
+  email      String
+  password   String
+  birthDate  DateTime
+  profileUrl String
+
+  wallet Float @default(50)
+
+  team      UserTeam?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+}
+
+model UserTeam {
+  externalId String @id
+  userId     String @unique
+
+  name          String @default("My team")
+  score         Float  @default(0)
+  previousScore Float  @default(0)
+  price         Float  @default(0)
+
+  user    User     @relation(fields: [userId], references: [externalId])
+  players Player[] @relation("UserTeamPlayers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

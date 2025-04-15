@@ -1,10 +1,13 @@
-import Player from "./player";
+import { Player } from "./player";
 
-interface Team {
+export interface Team {
+  externalId: string;
   name: string;
-  id: number;
-  players: Player[];
   logo: string;
-}
+  teamId: string;
 
-export default Team;
+  players?: Player[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
+}

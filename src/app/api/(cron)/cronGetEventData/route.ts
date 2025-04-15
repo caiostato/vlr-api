@@ -1,10 +1,16 @@
-import { baseUrl } from "@/constants";
-import { Player, PrismaClient, Team } from "@prisma/client";
 import axios from "axios";
 import { load } from "cheerio";
 import { NextResponse } from "next/server";
+
+import { PrismaClient } from "@prisma/client";
+
+import { baseUrl } from "@/constants";
+
 import createMatch from "@/factories/matchFactory";
-import { MatchData } from "./_types";
+
+import { Match } from "@/types/match";
+import { Player } from "@/types/player";
+import { Team } from "@/types/team";
 
 let playersCache = new Map<number, Player>();
 let teamsCache = new Map<number, Team>();
@@ -12,8 +18,9 @@ let teamsCache = new Map<number, Team>();
 const prisma = new PrismaClient();
 
 export async function GET() {
+  const events = ["/event/matches/2347/champions-tour-2025-americas-stage-1"];
   try {
-    const matches = await scrapeMatches();
+    const matches = await scrapeMatches(events);
     saveIntoDatabase(matches);
     return NextResponse.json(matches, { status: 200 });
   } catch (err) {
@@ -23,11 +30,9 @@ export async function GET() {
   }
 }
 
-async function scrapeMatches() {
+async function scrapeMatches(events: string[]) {
   try {
-    const { data } = await axios.get(
-      `${baseUrl}/event/matches/2347/champions-tour-2025-americas-stage-1`
-    );
+    const { data } = await axios.get(`${baseUrl}${events[0]}`);
     const $ = load(data);
 
     const matchElements = $(".match-item");
@@ -44,7 +49,6 @@ async function scrapeMatches() {
 
       playersCache = players;
       teamsCache = teams;
-
       matches.push(match);
     }
 
@@ -55,7 +59,7 @@ async function scrapeMatches() {
   }
 }
 
-async function saveIntoDatabase(matches: MatchData[]) {
+async function saveIntoDatabase(matches: Match[]) {
   for (const team of teamsCache.values()) {
     await prisma.team.upsert({
       where: { teamId: team.teamId },
@@ -75,20 +79,24 @@ async function saveIntoDatabase(matches: MatchData[]) {
   for (const player of playersCache.values()) {
     const externalTeam = teamsCache.get(Number(player.teamId));
     await prisma.player.upsert({
-      where: { playerId: Number(player.playerId) },
+      where: { playerId: player.playerId },
       update: {
         name: player.name,
         alias: player.alias,
         imageUrl: player.imageUrl,
         type: player.type,
+        country: player.country,
+        earnings: player.earnings,
         teamId: externalTeam?.externalId,
       },
       create: {
         externalId: player.externalId,
         name: player.name,
         alias: player.alias,
+        country: player.country,
+        earnings: player.earnings,
         imageUrl: player.imageUrl,
-        playerId: Number(player.playerId),
+        playerId: player.playerId,
         type: player.type,
         teamId: externalTeam?.externalId,
       },
@@ -114,6 +122,7 @@ async function saveIntoDatabase(matches: MatchData[]) {
           logoUrl: match.logoUrl,
           matchOrder: match.matchOrder,
           status: match.status,
+          score: match.score,
         },
         create: {
           externalId: match.externalId,
@@ -124,6 +133,7 @@ async function saveIntoDatabase(matches: MatchData[]) {
           eventName: match.eventName,
           eventStage: match.eventStage,
           logoUrl: match.logoUrl,
+          score: match.score,
 
           //TODO check if is empty
           teams: {
@@ -186,19 +196,23 @@ async function saveIntoDatabase(matches: MatchData[]) {
                   })
                   .then(async () => {
                     team.playersGame.forEach(async (playerGame) => {
+                      const player = playersCache.get(
+                        Number(playerGame.playerId)
+                      );
                       await prisma.playerGame
                         .upsert({
                           where: { externalId: playerGame.externalId },
                           update: {
-                            linkUrl: playerGame.externalId,
-                            vlrId: playerGame.externalId,
+                            playerId: player?.externalId || "",
                             teamGameId: team.externalId,
                           },
                           create: {
                             externalId: playerGame.externalId,
-                            linkUrl: playerGame.externalId,
-                            vlrId: playerGame.externalId,
+                            agent: playerGame.agent,
+                            alias: playerGame.alias,
+                            imageUrl: playerGame.imageUrl,
                             teamGameId: team.externalId,
+                            playerId: player?.externalId || "",
                           },
                         })
                         .then(async () => {
@@ -217,15 +231,15 @@ async function saveIntoDatabase(matches: MatchData[]) {
                               k: playerGame.stats.k,
                               kast: playerGame.stats.kast,
                               kdb: playerGame.stats.kdb,
-                              kdr: playerGame.stats.kdr,
+                              rating: playerGame.stats.rating,
                             },
                           });
                           await prisma.playerStatsAdvanced.create({
                             data: {
                               id: crypto.randomUUID(),
                               playerId: playerGame.externalId,
-                              kdr_ct: playerGame.advancedStats.kdr_ct,
-                              kdr_t: playerGame.advancedStats.kdr_t,
+                              rating_ct: playerGame.advancedStats.rating_ct,
+                              rating_t: playerGame.advancedStats.rating_t,
 
                               acs_ct: playerGame.advancedStats.acs_ct,
                               acs_t: playerGame.advancedStats.acs_t,

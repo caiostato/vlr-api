@@ -15,7 +15,14 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(teams, { status: 200 });
+    return NextResponse.json(teams, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
   } catch (err) {
     return NextResponse.json(err, { status: 400 });
   } finally {

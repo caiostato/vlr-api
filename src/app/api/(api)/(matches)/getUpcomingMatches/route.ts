@@ -5,9 +5,12 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const matches = await prisma.match.findMany({
-      where: {},
+      where: { status: { in: ["Upcoming", "Ongoing"] } },
       include: {
         teams: true,
+      },
+      orderBy: {
+        dateTime: "asc",
       },
     });
 
